@@ -40,13 +40,13 @@
               <code>Codefall | {{ entry["description"] }} ({{ entry["code_type"] }}) {{ secret_url }}</code>
             </p>
           </div>
-          <div class="column is-narrow">
+          <!--<div class="column is-narrow">
             <button title="Announce"
                     class="announcer button is-medium is-primary"
                     data-secret="{{ entry["secret"] }}">
               <span class="icon"><i class="mdi mdi-bullhorn"></i></span>
             </button>
-          </div>
+          </div>-->
         </div>
       </div>
     </div>
