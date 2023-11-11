@@ -13,6 +13,7 @@ See the file LICENSE for copying permission.
 from bottle import redirect, request, template
 from os import environ
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import text
 
 import requests
 
@@ -36,7 +37,7 @@ def main(db):
                         subtitle="Codefall")
 
     # get all codes for the user from the database
-    codes_qry = """SELECT key, description, code, code_type, claimed
+    codes_qry = text("""SELECT key, description, code, code_type, claimed
                    FROM codefall
                    LEFT OUTER JOIN codefall_keys
                        ON codefall.cid = codefall_keys.kid
@@ -44,7 +45,7 @@ def main(db):
                        user_name = :user_name
                        AND
                        key IS NOT NULL
-                   ORDER BY description"""
+                   ORDER BY description""")
     codes = db.execute(codes_qry, {"user_name": user_name})
 
     unclaimed, claimed = list(), list()
@@ -80,11 +81,11 @@ def add(db):
     if not all((user_name, description, code, code_type)):
         redirect("/codefall")
 
-    new_code_qry = """INSERT INTO codefall (description,
+    new_code_qry = text("""INSERT INTO codefall (description,
                                             code,
                                             code_type,
                                             user_name)
-                      VALUES (:description, :code, :code_type, :user_name)"""
+                      VALUES (:description, :code, :code_type, :user_name)""")
     try:
         db.execute(new_code_qry,
                    {"description": description,
@@ -114,14 +115,14 @@ def announce(db):
     if not all((user_name, secret)):
         return None
 
-    announce_qry = """SELECT pg_notify('codefall',
+    announce_qry = text("""SELECT pg_notify('codefall',
                         (SELECT key
                          FROM codefall_unclaimed
                          WHERE
                             user_name = :user_name
                             AND
                             key = :secret
-                         LIMIT 1))"""
+                         LIMIT 1))""")
 
     db.execute(announce_qry,
                {"user_name": user_name, "secret": secret})
@@ -154,14 +155,14 @@ def claim(secret, db):
         return template("codefall_claim", session=session,
                         subtitle="Codefall")
 
-    claim_code_qry = """UPDATE codefall
+    claim_code_qry = text("""UPDATE codefall
                         SET claimed = TRUE
                         WHERE
                             claimed = FALSE
                             AND cid = (SELECT cid
                                        FROM codefall_unclaimed
                                        WHERE key = :secret)
-                        RETURNING description, code, code_type"""
+                        RETURNING description, code, code_type""")
 
     code = db.execute(claim_code_qry, {"secret": secret})
     db.commit()
@@ -182,9 +183,9 @@ def show(secret, db):
     """Show a codefall page (letting people claim it)."""
     session = request.environ.get("beaker.session")
 
-    show_code_qry = """SELECT description, code_type
+    show_code_qry = text("""SELECT description, code_type
                        FROM codefall_unclaimed
-                       WHERE key = :secret"""
+                       WHERE key = :secret""")
 
     code = db.execute(show_code_qry, {"secret": secret})
     code = code.first()
