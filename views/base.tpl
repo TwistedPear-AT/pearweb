@@ -90,7 +90,7 @@
           </a>
           <br>
           <i class="mdi mdi-copyright"></i>
-          2015-2020 Kevin Perry
+          2015-2023 Kevin Perry
         </small>
       </div>
     </footer>
